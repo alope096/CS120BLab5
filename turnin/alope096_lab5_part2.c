@@ -12,7 +12,7 @@
 #include "simAVRHeader.h"
 #endif
 
-enum States{Start,begin,increment,max,decrement, min, reset} state;
+enum States{Start,begin,increment_press,increment_hold,increment_release,max,decrement_press,decrement_hold,decrement_release,min,reset}state;
 
 void Tick() {
     unsigned char button_increment = PINA & 0x01;
@@ -26,12 +26,10 @@ void Tick() {
         break;
         case begin:
            if((button_increment) && (!button_decrement) && (cntavail<9)){
-             cntavail = cntavail +1;
-             state = increment;
+             state = increment_press;
            }
            else if((!button_increment && button_decrement) && (cntavail>0)){
-             cntavail = cntavail - 1;
-             state = decrement;
+             state = decrement_press;
            }
            else if((button_increment && button_decrement)){
              state = reset;
@@ -41,62 +39,84 @@ void Tick() {
            }
         break;
 
-        case increment:
-           if(cntavail==9){
+        case increment_press:
+           if(cntavail == 9){
              state = max;
            }
-           else if((!button_increment) && (!button_decrement) && (cntavail<9)){
+           else if((button_increment)){
+             state = increment_hold;
+           }
+           else {
+             state = increment_release;
+           }
+           
+        break;
+
+        case increment_hold:
+           if(cntavail == 9){
              state = max;
            }
-           else if((!button_increment && button_decrement) && (cntavail>0)){
-             cntavail = cntavail - 1;
+           else if((button_increment)){
+             state = increment_hold;
+           }
+           else {
+             state = increment_release;
+           }
+           
+        break;
+
+        case increment_release:
+           if(cntavail == 9){
+             state = max;
+           }
+           else {
              state = begin;
            }
-           else if((button_increment && button_decrement)){
-             state = reset;
-           }
-           else{
-             state =  begin;
-           }
+           
         break;
 
         case max:
-           /* if((button_increment) && (!button_decrement) && (cntavail<9)){
-             cntavail = cntavail +1;           
-             state = increment;
-           }
-           else{*/
              state = begin;
+        break;
+
+         case decrement_press:
+           if(cntavail == 0){
+             state = min;
+           }
+           else if((button_decrement)){
+             state = decrement_hold;
+           }
+           else {
+             state = decrement_release;
+           }
            
         break;
 
-        case decrement:
-           if(cntavail==0){
+        case decrement_hold:
+           if(cntavail == 0){
              state = min;
            }
-           else if((!button_increment && !button_decrement) && (cntavail>0)){
+           else if((button_decrement)){
+             state = decrement_hold;
+           }
+           else {
+             state = decrement_release;
+           }
+           
+        break;
+
+        case decrement_release:
+           if(cntavail == 0){
              state = min;
            }
-           else if((button_increment) && (!button_decrement) && (cntavail<9)){
-             cntavail = cntavail +1;
+           else {
              state = begin;
            }
-           else if((button_increment && button_decrement)){
-             state = reset;
-           }
-           else{
-             state = decrement;
-           }
+           
         break;
 
         case min:
-           /*if((!button_increment && button_decrement) && (cntavail>0)){
-             cntavail = cntavail - 1;
-             state = decrement;
-           }
-           else{*/
              state = begin;
-           
         break;
 
         case reset:
@@ -118,9 +138,19 @@ void Tick() {
         break;
         case begin:
         break;
-        case increment:
+        case increment_press:
+           cntavail = cntavail +1;
         break;
-        case decrement:
+        case increment_hold:
+        break;
+        case increment_release:
+        break;
+        case decrement_press:
+           cntavail = cntavail -1;
+        break;
+        case decrement_hold:
+        break;
+        case decrement_release:
         break;
         case max:
         break;
