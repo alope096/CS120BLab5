@@ -15,8 +15,8 @@
 enum States{Start,begin,increment_press,increment_hold,increment_release,max,decrement_press,decrement_hold,decrement_release,min,reset}state;
 
 void Tick() {
-    unsigned char button_increment = PINA & 0x01;
-    unsigned char button_decrement = PINA & 0x02;
+    unsigned char button_increment = ~PINA & 0x01;
+    unsigned char button_decrement = ~PINA & 0x02;
     static unsigned char cntavail;
 
     switch(state){
@@ -28,7 +28,7 @@ void Tick() {
            if((button_increment) && (!button_decrement) && (cntavail<9)){
              state = increment_press;
            }
-           else if((!button_increment && button_decrement) && (cntavail>0)){
+           else if((!button_increment) && (button_decrement) && (cntavail>0)){
              state = decrement_press;
            }
            else if((button_increment && button_decrement)){
@@ -40,23 +40,17 @@ void Tick() {
         break;
 
         case increment_press:
-           if(cntavail == 9){
-             state = max;
-           }
-           else if((button_increment)){
-             state = increment_hold;
+	   if((!button_increment)){
+             state = increment_release;
            }
            else {
-             state = increment_release;
+             state = increment_hold;
            }
            
         break;
 
         case increment_hold:
-           if(cntavail == 9){
-             state = max;
-           }
-           else if((button_increment)){
+	  if((button_increment)){
              state = increment_hold;
            }
            else {
@@ -80,23 +74,17 @@ void Tick() {
         break;
 
          case decrement_press:
-           if(cntavail == 0){
-             state = min;
-           }
-           else if((button_decrement)){
-             state = decrement_hold;
+	   if((!button_decrement)){
+             state = decrement_release;
            }
            else {
-             state = decrement_release;
+             state = decrement_hold;
            }
            
         break;
 
         case decrement_hold:
-           if(cntavail == 0){
-             state = min;
-           }
-           else if((button_decrement)){
+	   if((button_decrement)){
              state = decrement_hold;
            }
            else {
